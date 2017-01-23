@@ -1,2 +1,3 @@
-# stencil-s17
-Stencil code for all projects (Spring 2017).
+# CS 138
+
+Class projects for CS 138: Distributed Systems.
