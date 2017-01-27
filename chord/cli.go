@@ -14,7 +14,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/brown-csci1380/stencil-s17/chord/chord"
+	"github.com/brown-csci1380/s17-bli12-hqian1/chord/chord"
 
 	"github.com/abiosoft/ishell"
 )
