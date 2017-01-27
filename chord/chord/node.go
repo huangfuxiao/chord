@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/brown-csci1380/stencil-s17/cs138"
+	"github.com/brown-csci1380/s17-yzhang84-yzhou53/cs138"
 	"google.golang.org/grpc"
 )
 
