@@ -56,6 +56,9 @@ func AddIds(a, b []byte) []byte {
  */
 func Between(nodeX, nodeA, nodeB []byte) bool {
 
+	if EqualIds(nodeA, nodeB) {
+		return true
+	}
 	xInt := big.Int{}
 	xInt.SetBytes(nodeX)
 
@@ -68,6 +71,7 @@ func Between(nodeX, nodeA, nodeB []byte) bool {
 	if aInt.Cmp(&xInt) == -1 && xInt.Cmp(&bInt) == -1 {
 		return true
 	}
+
 	return false
 }
 

@@ -9,6 +9,7 @@ package chord
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"math/big"
 	"time"
 )
@@ -25,8 +26,8 @@ type FingerEntry struct {
 func (node *Node) initFingerTable() {
 
 	node.FingerTable = make([]FingerEntry, 0)
-	for i := 0; i <= KEY_LENGTH; i++ {
-		node.FingerTable = append(node.FingerTable, FingerEntry{node.Id, node.RemoteSelf})
+	for i := 0; i < KEY_LENGTH; i++ {
+		node.FingerTable = append(node.FingerTable, FingerEntry{fingerMath(node.Id, i, KEY_LENGTH), node.RemoteSelf})
 	}
 
 }
@@ -45,7 +46,11 @@ func (node *Node) fixNextFinger(ticker *time.Ticker) {
 		}
 
 		//		next_hash := fingerMath(node.Id, next, KEY_LENGTH)
-		//		//node.FingerTable[next] = node.findSuccessor(next_hash)
+		//		remoteSuccessor, err := node.findSuccessor(next_hash)
+		//		if err != nil {
+		//			return
+		//		}
+		//		node.FingerTable[next] = FingerEntry{remoteSuccessor.Id, remoteSuccessor}
 		//		next += 1
 		//		if next > KEY_LENGTH-1 {
 		//			next = 1
@@ -58,15 +63,15 @@ func fingerMath(n []byte, i int, m int) []byte {
 
 	nInt := big.Int{}
 	nInt.SetBytes(n)
+	Debug.Print(nInt.Int64())
 	aInt := big.Int{}
-	aInt.SetInt64(int64(2 ^ i))
+	aInt.SetInt64(int64(math.Pow(float64(2), float64(i))))
 	bInt := big.Int{}
-	bInt.SetInt64(int64(2 ^ m))
+	bInt.SetInt64(int64(math.Pow(float64(2), float64(m))))
 
 	sum := big.Int{}
 	sum.Add(&nInt, &aInt)
 	sum.Mod(&sum, &bInt)
-
 	return sum.Bytes()
 
 }

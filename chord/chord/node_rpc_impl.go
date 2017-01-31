@@ -45,12 +45,7 @@ func (node *Node) GetSuccessorId(req *RemoteId) (*IdReply, error) {
 	//TODO students should implement this method
 	node.sLock.RLock()
 	defer node.sLock.RUnlock()
-	if node.Successor == nil {
-		return &IdReply{nil, "", false}, nil
-	} else {
-		return &IdReply{node.Successor.Id, node.Successor.Addr, true}, nil
-	}
-	return nil, nil
+	return &IdReply{node.Successor.Id, node.Successor.Addr, true}, nil
 }
 
 func (node *Node) SetPredecessorId(req *UpdateReq) (*RpcOkay, error) {
@@ -59,8 +54,8 @@ func (node *Node) SetPredecessorId(req *UpdateReq) (*RpcOkay, error) {
 	}
 
 	//TODO students should implement this method
-	node.pLock.RLock()
-	defer node.pLock.RUnlock()
+	node.pLock.Lock()
+	defer node.pLock.Unlock()
 	node.Predecessor = &RemoteNode{req.UpdateId, req.UpdateAddr}
 
 	return &RpcOkay{true}, nil
@@ -73,8 +68,8 @@ func (node *Node) SetSuccessorId(req *UpdateReq) (*RpcOkay, error) {
 
 	//TODO students should implement this method
 
-	node.sLock.RLock()
-	defer node.sLock.RUnlock()
+	node.sLock.Lock()
+	defer node.sLock.Unlock()
 	node.Successor = &RemoteNode{req.UpdateId, req.UpdateAddr}
 
 	return &RpcOkay{true}, nil
@@ -84,10 +79,9 @@ func (node *Node) Notify(req *NotifyReq) (*RpcOkay, error) {
 	if err := validateRpc(node, req.NodeId); err != nil {
 		return nil, err
 	}
+	node.notify(&RemoteNode{req.UpdateId, req.UpdateAddr})
 
-	//TODO students should implement this method
-
-	return nil, nil
+	return &RpcOkay{true}, nil
 }
 
 func (node *Node) FindSuccessor(query *RemoteQuery) (*IdReply, error) {
@@ -95,18 +89,24 @@ func (node *Node) FindSuccessor(query *RemoteQuery) (*IdReply, error) {
 		return nil, err
 	}
 
-	//TODO students should implement this method
-
-	return nil, nil
+	node.sLock.RLock()
+	defer node.sLock.RUnlock()
+	successor, err := node.findSuccessor(query.Id)
+	if err != nil {
+		return &IdReply{}, err
+	}
+	return &IdReply{successor.Id, successor.Addr, true}, nil
 }
 
 func (node *Node) ClosestPrecedingFinger(query *RemoteQuery) (*IdReply, error) {
 	if err := validateRpc(node, query.FromId); err != nil {
 		return nil, err
 	}
-
-	//TODO students should implement this method
-	for i := KEY_LENGTH; i >= 1; i++ {
+	//Debug.Print(node.Id)
+	//Debug.Print(query.Id)
+	node.FtLock.RLock()
+	defer node.FtLock.RUnlock()
+	for i := KEY_LENGTH - 1; i >= 0; i = i - 1 {
 		if Between(node.FingerTable[i].Node.Id, node.Id, query.Id) {
 			return &IdReply{node.FingerTable[i].Node.Id, node.FingerTable[i].Node.Addr, true}, nil
 		}
