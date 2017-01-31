@@ -9,8 +9,11 @@ package chord
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 	"time"
 )
+
+var next = 1
 
 // A single finger table entry.
 type FingerEntry struct {
@@ -21,7 +24,10 @@ type FingerEntry struct {
 // Create initial finger table that only points to itself (will be fixed later).
 func (node *Node) initFingerTable() {
 
-	//TODO students should implement this method
+	node.FingerTable = make([]FingerEntry, 0)
+	for i := 0; i <= KEY_LENGTH; i++ {
+		node.FingerTable = append(node.FingerTable, FingerEntry{node.Id, node.RemoteSelf})
+	}
 
 }
 
@@ -38,16 +44,31 @@ func (node *Node) fixNextFinger(ticker *time.Ticker) {
 			return
 		}
 
-		//TODO students should implement this method
+		//		next_hash := fingerMath(node.Id, next, KEY_LENGTH)
+		//		//node.FingerTable[next] = node.findSuccessor(next_hash)
+		//		next += 1
+		//		if next > KEY_LENGTH-1 {
+		//			next = 1
+		//		}
 	}
 }
 
 // Calculates: (n + 2^i) mod (2^m).
 func fingerMath(n []byte, i int, m int) []byte {
 
-	//TODO students should implement this function
+	nInt := big.Int{}
+	nInt.SetBytes(n)
+	aInt := big.Int{}
+	aInt.SetInt64(int64(2 ^ i))
+	bInt := big.Int{}
+	bInt.SetInt64(int64(2 ^ m))
 
-	return nil
+	sum := big.Int{}
+	sum.Add(&nInt, &aInt)
+	sum.Mod(&sum, &bInt)
+
+	return sum.Bytes()
+
 }
 
 // Print contents of a node's finger table.

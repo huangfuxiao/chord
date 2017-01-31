@@ -43,7 +43,13 @@ func (node *Node) GetSuccessorId(req *RemoteId) (*IdReply, error) {
 	}
 
 	//TODO students should implement this method
-
+	node.sLock.RLock()
+	defer node.sLock.RUnlock()
+	if node.Successor == nil {
+		return &IdReply{nil, "", false}, nil
+	} else {
+		return &IdReply{node.Successor.Id, node.Successor.Addr, true}, nil
+	}
 	return nil, nil
 }
 
@@ -53,8 +59,11 @@ func (node *Node) SetPredecessorId(req *UpdateReq) (*RpcOkay, error) {
 	}
 
 	//TODO students should implement this method
+	node.pLock.RLock()
+	defer node.pLock.RUnlock()
+	node.Predecessor = &RemoteNode{req.UpdateId, req.UpdateAddr}
 
-	return nil, nil
+	return &RpcOkay{true}, nil
 }
 
 func (node *Node) SetSuccessorId(req *UpdateReq) (*RpcOkay, error) {
@@ -64,7 +73,11 @@ func (node *Node) SetSuccessorId(req *UpdateReq) (*RpcOkay, error) {
 
 	//TODO students should implement this method
 
-	return nil, nil
+	node.sLock.RLock()
+	defer node.sLock.RUnlock()
+	node.Successor = &RemoteNode{req.UpdateId, req.UpdateAddr}
+
+	return &RpcOkay{true}, nil
 }
 
 func (node *Node) Notify(req *NotifyReq) (*RpcOkay, error) {
@@ -93,8 +106,13 @@ func (node *Node) ClosestPrecedingFinger(query *RemoteQuery) (*IdReply, error) {
 	}
 
 	//TODO students should implement this method
+	for i := KEY_LENGTH; i >= 1; i++ {
+		if Between(node.FingerTable[i].Node.Id, node.Id, query.Id) {
+			return &IdReply{node.FingerTable[i].Node.Id, node.FingerTable[i].Node.Addr, true}, nil
+		}
+	}
 
-	return nil, nil
+	return &IdReply{node.Id, node.Addr, true}, nil
 }
 
 // Check if node is alive

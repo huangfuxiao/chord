@@ -150,15 +150,32 @@ func (node *Node) notify(remoteNode *RemoteNode) {
 // Psuedocode from figure 4 of chord paper
 func (node *Node) findSuccessor(id []byte) (*RemoteNode, error) {
 
-	//TODO students should implement this method
-
-	return nil, nil
+	preNode, err := node.findPredecessor(id)
+	if err != nil {
+		return &RemoteNode{}, err
+	}
+	remoteNode, err := preNode.GetSuccessorIdRPC()
+	if err != nil {
+		return &RemoteNode{}, err
+	}
+	return remoteNode, nil
 }
 
 // Psuedocode from figure 4 of chord paper
 func (node *Node) findPredecessor(id []byte) (*RemoteNode, error) {
 
-	//TODO students should implement this method
+	newRemoteNode := node.RemoteSelf
+	successor, err := newRemoteNode.GetSuccessorIdRPC()
+	if err != nil {
+		return &RemoteNode{}, err
+	}
+	for BetweenRightIncl(id, newRemoteNode.Id, successor.Id) == false {
+		newRemoteNode, err = newRemoteNode.ClosestPrecedingFingerRPC(id)
+		successor, err = newRemoteNode.GetSuccessorIdRPC()
+		if err != nil {
+			return &RemoteNode{}, err
+		}
+	}
 
-	return nil, nil
+	return newRemoteNode, nil
 }
