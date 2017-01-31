@@ -16,7 +16,7 @@ import (
 
 	"github.com/brown-csci1380/s17-bli12-hqian1/chord/chord"
 
-	"github.com/abiosoft/ishell"
+	"gopkg.in/abiosoft/ishell.v1"
 )
 
 func printHelp(shell *ishell.Shell) {
