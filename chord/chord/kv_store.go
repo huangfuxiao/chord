@@ -77,6 +77,7 @@ func (node *Node) PutLocal(req *KeyValueReq) (*KeyValueReply, error) {
 	defer node.DsLock.Unlock()
 	key := req.Key
 	val := req.Value
+	node.dataStore[key] = val
 	reply := KeyValueReply{key, val}
 
 	return &reply, nil
@@ -94,11 +95,12 @@ func (node *Node) TransferKeys(req *TransferReq) (*RpcOkay, error) {
 	defer node.DsLock.Unlock()
 	for key, val := range node.dataStore {
 		predId := req.PredId
-		if predId == nil {
-			predId = node.Id
-		}
+		// if predId == nil {
+		// 	predId = node.Id
+		// }
 		if BetweenRightIncl(HashKey(key), predId, req.FromId) {
-			err := node.Predecessor.PutRPC(key, val)
+			remNode := RemoteNode{req.FromId, req.FromAddr}
+			err := remNode.PutRPC(key, val)
 			if err != nil {
 				reply := RpcOkay{false}
 				return &reply, err
