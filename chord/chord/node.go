@@ -118,9 +118,17 @@ func (node *Node) spawn(fun func()) {
 
 // This node is trying to join an existing ring that a remote node is a part of (i.e., other)
 func (node *Node) join(other *RemoteNode) error {
-
-	//TODO students should implement this method
-
+	if other != nil {
+		node.Predecessor = nil
+		successor, err := other.FindSuccessorRPC(node.Id)
+		if err != nil {
+			return err
+		}
+		node.Successor = successor
+	} else {
+		node.Predecessor = nil
+		node.Successor = node.RemoteSelf
+	}
 	return nil
 }
 
@@ -135,30 +143,57 @@ func (node *Node) stabilize(ticker *time.Ticker) {
 			ticker.Stop()
 			return
 		}
-
-		//TODO students should implement this method
+		x, err := node.Successor.GetPredecessorIdRPC()
+		if err != nil {
+			Debug.Printf("stabilize fail!")
+			return
+		}
+		if Between(x.Id, node.Id, node.Successor.Id) {
+			node.Successor = x
+		}
+		node.Successor.NotifyRPC(node.RemoteSelf)
 	}
 }
 
 // Psuedocode from figure 7 of chord paper
 func (node *Node) notify(remoteNode *RemoteNode) {
-
-	//TODO students should implement this method
+	if node.Predecessor == nil || Between(remoteNode.Id, node.Predecessor.Id, node.Id) {
+		node.Predecessor = remoteNode
+	}
 
 }
 
 // Psuedocode from figure 4 of chord paper
 func (node *Node) findSuccessor(id []byte) (*RemoteNode, error) {
 
-	//TODO students should implement this method
-
-	return nil, nil
+	preNode, err := node.findPredecessor(id)
+	if err != nil {
+		return &RemoteNode{}, err
+	}
+	remoteNode, err := preNode.GetSuccessorIdRPC()
+	Debug.Print(remoteNode.Id)
+	if err != nil {
+		return &RemoteNode{}, err
+	}
+	return remoteNode, nil
 }
 
 // Psuedocode from figure 4 of chord paper
 func (node *Node) findPredecessor(id []byte) (*RemoteNode, error) {
 
-	//TODO students should implement this method
+	newRemoteNode := node.RemoteSelf
+	successor, err := newRemoteNode.GetSuccessorIdRPC()
+	Out.Print(successor.Id)
+	if err != nil {
+		return &RemoteNode{}, err
+	}
+	for BetweenRightIncl(id, newRemoteNode.Id, successor.Id) == false {
+		newRemoteNode, err = newRemoteNode.ClosestPrecedingFingerRPC(id)
+		successor, err = newRemoteNode.GetSuccessorIdRPC()
+		if err != nil {
+			return &RemoteNode{}, err
+		}
+	}
 
-	return nil, nil
+	return newRemoteNode, nil
 }

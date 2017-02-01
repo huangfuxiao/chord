@@ -37,6 +37,7 @@ func main() {
 	addrPtr := flag.String("addr", "", "Address of a node in the Chord ring you wish to join")
 	idPtr := flag.String("id", "", "ID of a node in the Chord ring you wish to join")
 	debugPtr := flag.Bool("debug", true, "Start the CLI with debug statements turned on")
+	definedidPtr := flag.String("did", "", "ID of a node in the Chord ring you wish to join")
 	flag.Parse()
 
 	var parent *chord.RemoteNode
@@ -59,7 +60,12 @@ func main() {
 	var err error
 	nodes := make([]*chord.Node, *countPtr)
 	for i := range nodes {
-		nodes[i], err = chord.CreateNode(parent)
+		if *definedidPtr == "" {
+			nodes[i], err = chord.CreateNode(parent)
+		} else {
+			bInt, _ := big.NewInt(int64(0)).SetString(*definedidPtr, 10)
+			nodes[i], err = chord.CreateDefinedNode(parent, bInt.Bytes())
+		}
 		if err != nil {
 			fmt.Println("Unable to create new node!")
 			log.Fatal(err)

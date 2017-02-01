@@ -56,7 +56,21 @@ func AddIds(a, b []byte) []byte {
  */
 func Between(nodeX, nodeA, nodeB []byte) bool {
 
-	//TODO Students should implement this function
+	if EqualIds(nodeA, nodeB) {
+		return true
+	}
+	xInt := big.Int{}
+	xInt.SetBytes(nodeX)
+
+	aInt := big.Int{}
+	aInt.SetBytes(nodeA)
+
+	bInt := big.Int{}
+	bInt.SetBytes(nodeB)
+
+	if aInt.Cmp(&xInt) == -1 && xInt.Cmp(&bInt) == -1 {
+		return true
+	}
 
 	return false
 }
@@ -64,7 +78,5 @@ func Between(nodeX, nodeA, nodeB []byte) bool {
 // Returns true if X is between (A : B]
 func BetweenRightIncl(nodeX, nodeA, nodeB []byte) bool {
 
-	//TODO Students should implement this function
-
-	return false
+	return Between(nodeX, nodeA, nodeB) || EqualIds(nodeX, nodeB)
 }
