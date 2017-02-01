@@ -9,6 +9,7 @@ package chord
 
 import (
 	"fmt"
+	"log"
 )
 
 /*
@@ -19,24 +20,32 @@ import (
 func Get(node *Node, key string) (string, error) {
 
 	//TODO students should implement this method
+	remoteNode, err := node.locate(key)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	return "", nil
+	return remoteNode.GetRPC(key)
 }
 
 // Put a key/value in the datastore, given an abitrary node in the ring.
 func Put(node *Node, key string, value string) error {
 
 	//TODO students should implement this method
+	remoteNode, err := node.locate(key)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	return nil
+	return remoteNode.PutRPC(key, value)
 }
 
 // Internal helper method to find the appropriate node in the ring based on a key.
 func (node *Node) locate(key string) (*RemoteNode, error) {
 
 	//TODO students should implement this method
-
-	return nil, nil
+	id := HashKey(key)
+	return node.findSuccessor(id)
 }
 
 /*
@@ -49,8 +58,13 @@ func (node *Node) GetLocal(req *KeyValueReq) (*KeyValueReply, error) {
 	}
 
 	//TODO students should implement this method
+	node.DsLock.RLock()
+	defer node.DsLock.RUnlock()
+	key := req.Key
+	val := node.dataStore[key]
+	reply := KeyValueReply{key, val}
 
-	return nil, nil
+	return &reply, nil
 }
 
 func (node *Node) PutLocal(req *KeyValueReq) (*KeyValueReply, error) {
@@ -59,7 +73,13 @@ func (node *Node) PutLocal(req *KeyValueReq) (*KeyValueReply, error) {
 	}
 
 	//TODO students should implement this method
-	return nil, nil
+	node.DsLock.Lock()
+	defer node.DsLock.Unlock()
+	key := req.Key
+	val := req.Value
+	reply := KeyValueReply{key, val}
+
+	return &reply, nil
 }
 
 // Find locally stored keys that are between (predId : fromId].
@@ -70,8 +90,26 @@ func (node *Node) TransferKeys(req *TransferReq) (*RpcOkay, error) {
 	}
 
 	//TODO students should implement this method
+	node.DsLock.Lock()
+	defer node.DsLock.Unlock()
+	for key, val := range node.dataStore {
+		predId := req.PredId
+		if predId == nil {
+			predId = node.Id
+		}
+		if BetweenRightIncl(HashKey(key), predId, req.FromId) {
+			err := node.Predecessor.PutRPC(key, val)
+			if err != nil {
+				reply := RpcOkay{false}
+				return &reply, err
+			}
+			//Delete the data store locally
+			delete(node.dataStore, key)
+		}
+	}
+	reply := RpcOkay{true}
 
-	return nil, nil
+	return &reply, nil
 }
 
 // Print the contents of a node's datastore.
