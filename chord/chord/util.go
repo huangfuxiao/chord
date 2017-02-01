@@ -67,9 +67,14 @@ func Between(nodeX, nodeA, nodeB []byte) bool {
 
 	bInt := big.Int{}
 	bInt.SetBytes(nodeB)
-
-	if aInt.Cmp(&xInt) == -1 && xInt.Cmp(&bInt) == -1 {
-		return true
+	if aInt.Cmp(&bInt) == -1 {
+		if aInt.Cmp(&xInt) == -1 && xInt.Cmp(&bInt) == -1 {
+			return true
+		}
+	} else {
+		if aInt.Cmp(&xInt) == -1 || xInt.Cmp(&bInt) == -1 {
+			return true
+		}
 	}
 
 	return false

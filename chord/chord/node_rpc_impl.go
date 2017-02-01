@@ -42,7 +42,6 @@ func (node *Node) GetSuccessorId(req *RemoteId) (*IdReply, error) {
 		return nil, err
 	}
 
-	//TODO students should implement this method
 	node.sLock.RLock()
 	defer node.sLock.RUnlock()
 	return &IdReply{node.Successor.Id, node.Successor.Addr, true}, nil
@@ -102,8 +101,6 @@ func (node *Node) ClosestPrecedingFinger(query *RemoteQuery) (*IdReply, error) {
 	if err := validateRpc(node, query.FromId); err != nil {
 		return nil, err
 	}
-	//Debug.Print(node.Id)
-	//Debug.Print(query.Id)
 	node.FtLock.RLock()
 	defer node.FtLock.RUnlock()
 	for i := KEY_LENGTH - 1; i >= 0; i = i - 1 {

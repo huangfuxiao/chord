@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var next = 1
+var next = 0
 
 // A single finger table entry.
 type FingerEntry struct {
@@ -45,16 +45,19 @@ func (node *Node) fixNextFinger(ticker *time.Ticker) {
 			return
 		}
 
-		//		next_hash := fingerMath(node.Id, next, KEY_LENGTH)
-		//		remoteSuccessor, err := node.findSuccessor(next_hash)
-		//		if err != nil {
-		//			return
-		//		}
-		//		node.FingerTable[next] = FingerEntry{remoteSuccessor.Id, remoteSuccessor}
-		//		next += 1
-		//		if next > KEY_LENGTH-1 {
-		//			next = 1
-		//		}
+		next_hash := fingerMath(node.Id, next, KEY_LENGTH)
+		remoteSuccessor, err := node.findSuccessor(next_hash)
+		if err != nil {
+			Debug.Println("no successor has been found!")
+			return
+		}
+		node.FtLock.Lock()
+		node.FingerTable[next] = FingerEntry{next_hash, remoteSuccessor}
+		node.FtLock.Unlock()
+		next += 1
+		if next > KEY_LENGTH-1 {
+			next = 0
+		}
 	}
 }
 
@@ -63,7 +66,7 @@ func fingerMath(n []byte, i int, m int) []byte {
 
 	nInt := big.Int{}
 	nInt.SetBytes(n)
-	Debug.Print(nInt.Int64())
+	//Debug.Print(nInt.Int64())
 	aInt := big.Int{}
 	aInt.SetInt64(int64(math.Pow(float64(2), float64(i))))
 	bInt := big.Int{}

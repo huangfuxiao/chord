@@ -143,22 +143,39 @@ func (node *Node) stabilize(ticker *time.Ticker) {
 			ticker.Stop()
 			return
 		}
-		x, err := node.Successor.GetPredecessorIdRPC()
+
+		node.sLock.RLock()
+		succ := node.Successor
+		node.sLock.RUnlock()
+
+		x, err := succ.GetPredecessorIdRPC()
 		if err != nil {
-			Debug.Printf("stabilize fail!")
+			Debug.Println("stabilize fail!")
 			return
 		}
-		if Between(x.Id, node.Id, node.Successor.Id) {
+		if x != nil && Between(x.Id, node.Id, succ.Id) {
+			node.sLock.Lock()
 			node.Successor = x
+			node.sLock.Unlock()
 		}
-		node.Successor.NotifyRPC(node.RemoteSelf)
+		//Debug.Println("before notify,Successor:", node.Successor.Id)
+		succ.NotifyRPC(node.RemoteSelf)
 	}
 }
 
 // Psuedocode from figure 7 of chord paper
 func (node *Node) notify(remoteNode *RemoteNode) {
-	if node.Predecessor == nil || Between(remoteNode.Id, node.Predecessor.Id, node.Id) {
+
+	if EqualIds(node.Id, remoteNode.Id) {
+		return
+	}
+	node.pLock.RLock()
+	pred := node.Predecessor
+	node.pLock.RUnlock()
+	if pred == nil || Between(remoteNode.Id, pred.Id, node.Id) {
+		node.pLock.Lock()
 		node.Predecessor = remoteNode
+		node.pLock.Unlock()
 	}
 
 }
@@ -170,11 +187,12 @@ func (node *Node) findSuccessor(id []byte) (*RemoteNode, error) {
 	if err != nil {
 		return &RemoteNode{}, err
 	}
+	//Debug.Printf("preNode:%v\n", HashStr(preNode.Id))
 	remoteNode, err := preNode.GetSuccessorIdRPC()
-	Debug.Print(remoteNode.Id)
 	if err != nil {
 		return &RemoteNode{}, err
 	}
+	//Debug.Printf("sucNode:%v\n", HashStr(remoteNode.Id))
 	return remoteNode, nil
 }
 
@@ -183,17 +201,17 @@ func (node *Node) findPredecessor(id []byte) (*RemoteNode, error) {
 
 	newRemoteNode := node.RemoteSelf
 	successor, err := newRemoteNode.GetSuccessorIdRPC()
-	Out.Print(successor.Id)
+	//Debug.Printf("succ id:%v\n", HashStr(successor.Id))
 	if err != nil {
 		return &RemoteNode{}, err
 	}
-	for BetweenRightIncl(id, newRemoteNode.Id, successor.Id) == false {
+	for !BetweenRightIncl(id, newRemoteNode.Id, successor.Id) {
 		newRemoteNode, err = newRemoteNode.ClosestPrecedingFingerRPC(id)
 		successor, err = newRemoteNode.GetSuccessorIdRPC()
 		if err != nil {
 			return &RemoteNode{}, err
 		}
 	}
-
+	//Debug.Printf("id:%v nodeid:%v\n", HashStr(id), HashStr(newRemoteNode.Id))
 	return newRemoteNode, nil
 }
