@@ -36,7 +36,7 @@ func Put(node *Node, key string, value string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	//Debug.Println("key:%s locate")
 	return remoteNode.PutRPC(key, value)
 }
 
@@ -45,6 +45,7 @@ func (node *Node) locate(key string) (*RemoteNode, error) {
 
 	//TODO students should implement this method
 	id := HashKey(key)
+	//Debug.Printf("key:%s hash:%v\n", key, HashStr(id))
 	return node.findSuccessor(id)
 }
 
@@ -90,7 +91,7 @@ func (node *Node) TransferKeys(req *TransferReq) (*RpcOkay, error) {
 		return nil, err
 	}
 
-	//TODO students should implement this method
+	//Debug.Println("Transfer Key")
 	node.DsLock.Lock()
 	defer node.DsLock.Unlock()
 	for key, val := range node.dataStore {

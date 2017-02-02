@@ -176,6 +176,11 @@ func (node *Node) notify(remoteNode *RemoteNode) {
 		node.pLock.Lock()
 		node.Predecessor = remoteNode
 		node.pLock.Unlock()
+		if pred == nil {
+			node.RemoteSelf.TransferKeysRPC(remoteNode, node.Id)
+		} else {
+			node.RemoteSelf.TransferKeysRPC(remoteNode, pred.Id)
+		}
 	}
 
 }
