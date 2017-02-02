@@ -156,6 +156,7 @@ func (node *Node) stabilize(ticker *time.Ticker) {
 		if x != nil && Between(x.Id, node.Id, succ.Id) {
 			node.sLock.Lock()
 			node.Successor = x
+			succ = node.Successor
 			node.sLock.Unlock()
 		}
 		//Debug.Println("before notify,Successor:", node.Successor.Id)
