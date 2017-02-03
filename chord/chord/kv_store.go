@@ -23,6 +23,7 @@ func Get(node *Node, key string) (string, error) {
 	remoteNode, err := node.locate(key)
 	if err != nil {
 		log.Fatal(err)
+		return "", err
 	}
 
 	return remoteNode.GetRPC(key)
@@ -35,6 +36,7 @@ func Put(node *Node, key string, value string) error {
 	remoteNode, err := node.locate(key)
 	if err != nil {
 		log.Fatal(err)
+		return err
 	}
 	//Debug.Println("key:%s locate")
 	return remoteNode.PutRPC(key, value)

@@ -41,8 +41,33 @@ func ShutdownNode(node *Node) {
 	node.IsShutdown = true
 	node.sdLock.Unlock()
 
-	//TODO students should modify this method to gracefully shutdown a node
+	node.sLock.RLock()
+	succ := node.Successor
+	node.sLock.RUnlock()
 
+	node.pLock.RLock()
+	pred := node.Predecessor
+	node.pLock.RUnlock()
+
+	//Debug.Printf("pred id:%v succ id:%v", pred.Id, succ.Id)
+	if pred != nil {
+		node.RemoteSelf.TransferKeysRPC(succ, pred.Id)
+		pred.SetSuccessorIdRPC(succ)
+		if EqualIds(pred.Id, succ.Id) {
+			succ.SetPredecessorIdRPC(nil)
+			predid, _ := succ.GetPredecessorIdRPC()
+			Debug.Printf("succ id:%v pred id:%v", succ, predid)
+		} else {
+			succ.SetPredecessorIdRPC(pred)
+		}
+		//newpred, _ := succ.GetPredecessorIdRPC()
+		//if newpred == nil {
+		//	Debug.Println("nil")
+		//} else {
+		//	Debug.Printf("succ id:%v pred id:%v", pred.Id, newpred.Id)
+		//}
+
+	}
 	// Wait for all go routines to exit.
 	node.wg.Wait()
 	node.Server.GracefulStop()

@@ -52,7 +52,6 @@ func (node *Node) SetPredecessorId(req *UpdateReq) (*RpcOkay, error) {
 		return nil, err
 	}
 
-	//TODO students should implement this method
 	node.pLock.Lock()
 	defer node.pLock.Unlock()
 	node.Predecessor = &RemoteNode{req.UpdateId, req.UpdateAddr}
@@ -64,8 +63,6 @@ func (node *Node) SetSuccessorId(req *UpdateReq) (*RpcOkay, error) {
 	if err := validateRpc(node, req.FromId); err != nil {
 		return nil, err
 	}
-
-	//TODO students should implement this method
 
 	node.sLock.Lock()
 	defer node.sLock.Unlock()

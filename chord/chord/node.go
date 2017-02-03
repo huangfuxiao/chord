@@ -147,16 +147,16 @@ func (node *Node) stabilize(ticker *time.Ticker) {
 		node.sLock.RLock()
 		succ := node.Successor
 		node.sLock.RUnlock()
-
+		//Debug.Printf("succ id:%v\n", succ)
 		x, err := succ.GetPredecessorIdRPC()
 		if err != nil {
-			Debug.Println("stabilize fail!")
-			return
+			Debug.Printf("stabilize fail! succ id:%v\n", succ)
+			continue
 		}
-		if x != nil && Between(x.Id, node.Id, succ.Id) {
+		if x != nil && x.Id != nil && Between(x.Id, node.Id, succ.Id) {
 			node.sLock.Lock()
 			node.Successor = x
-			succ = node.Successor
+			//succ = node.Successor
 			node.sLock.Unlock()
 		}
 		//Debug.Println("before notify,Successor:", node.Successor.Id)
